@@ -1,0 +1,23 @@
+aws_region   = "us-east-1"
+project_name = "doces-com-amor"
+
+vpc_cidr              = "10.0.0.0/16"
+public_subnet_a_cidr  = "10.0.1.0/24"
+public_subnet_b_cidr  = "10.0.2.0/24"
+backend_subnet_a_cidr = "10.0.3.0/24"
+backend_subnet_b_cidr = "10.0.4.0/24"
+database_subnet_cidr  = "10.0.5.0/24"
+
+frontend_instance_type = "t3.micro"
+backend_instance_type  = "t3.micro"
+mysql_instance_type    = "t3.micro"
+
+mysql_database = "doces_com_amor"
+mysql_user     = "admin"
+mysql_password = "ALTERAR_LOCALMENTE"
+
+# Optional: create the HTTPS listener with an already validated ACM certificate.
+# alb_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/uuid"
+
+# Optional: creates an email subscription that must be confirmed by the recipient.
+# alarm_email = "alerts@example.com"
