@@ -1,0 +1,17 @@
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform.tfvars.example
+*.tfplan
+crash.log
+crash.*.log
+*.pem
+.env
+
+# Terraform override files are local by design.
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
