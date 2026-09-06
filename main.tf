@@ -41,8 +41,8 @@ module "compute" {
   frontend_port          = var.frontend_port
   backend_port           = var.backend_port
   aws_region             = var.aws_region
-  backend_image_uri      = var.backend_image_uri
-  frontend_image_uri     = var.frontend_image_uri
+  backend_image_uri      = local.resolved_backend_image_uri
+  frontend_image_uri     = local.resolved_frontend_image_uri
   instance_profile_name  = local.ec2_instance_profile_name
   jwt_secret             = random_id.jwt_secret.b64_std
   google_calendar_id     = var.google_calendar_id

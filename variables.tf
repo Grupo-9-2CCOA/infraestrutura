@@ -82,13 +82,29 @@ variable "backend_port" {
 }
 
 variable "backend_image_uri" {
-  description = "Complete ECR URI and immutable tag of the backend image."
+  description = "Optional complete backend image URI used to pin a version for rollback. By default, the latest ECR image is selected."
   type        = string
+  default     = null
+  nullable    = true
 }
 
 variable "frontend_image_uri" {
-  description = "Complete ECR URI and immutable tag of the frontend image."
+  description = "Optional complete frontend image URI used to pin a version for rollback. By default, the latest ECR image is selected."
   type        = string
+  default     = null
+  nullable    = true
+}
+
+variable "backend_repository_name" {
+  description = "ECR repository containing backend images."
+  type        = string
+  default     = "doces-com-amor-backend"
+}
+
+variable "frontend_repository_name" {
+  description = "ECR repository containing frontend images."
+  type        = string
+  default     = "doces-com-amor-frontend"
 }
 
 variable "google_calendar_secret_arn" {

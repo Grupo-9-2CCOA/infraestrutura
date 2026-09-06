@@ -87,3 +87,13 @@ output "ec2_instance_profile_name" {
   description = "Instance profile used by the application EC2 instances."
   value       = local.ec2_instance_profile_name
 }
+
+output "selected_backend_image_uri" {
+  description = "Backend image automatically selected from ECR or explicitly pinned."
+  value       = local.resolved_backend_image_uri
+}
+
+output "selected_frontend_image_uri" {
+  description = "Frontend image automatically selected from ECR or explicitly pinned."
+  value       = local.resolved_frontend_image_uri
+}
