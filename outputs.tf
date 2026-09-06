@@ -65,17 +65,17 @@ output "alb_dns_name" {
 
 output "bronze_bucket_name" {
   description = "Name of the Bronze data bucket."
-  value       = module.storage.bronze_bucket_name
+  value       = var.enable_data_lake ? module.storage[0].bronze_bucket_name : null
 }
 
 output "silver_bucket_name" {
   description = "Name of the Silver data bucket."
-  value       = module.storage.silver_bucket_name
+  value       = var.enable_data_lake ? module.storage[0].silver_bucket_name : null
 }
 
 output "gold_bucket_name" {
   description = "Name of the Gold data bucket."
-  value       = module.storage.gold_bucket_name
+  value       = var.enable_data_lake ? module.storage[0].gold_bucket_name : null
 }
 
 output "sns_topic_arn" {

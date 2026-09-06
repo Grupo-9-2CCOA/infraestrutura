@@ -15,6 +15,12 @@ variable "project_name" {
   }
 }
 
+variable "enable_data_lake" {
+  description = "Create the optional Bronze, Silver, and Gold S3 data lake. Keep disabled in AWS Academy accounts that deny Object Lock inspection."
+  type        = bool
+  default     = false
+}
+
 variable "vpc_cidr" {
   description = "CIDR block for the VPC."
   type        = string
