@@ -183,8 +183,9 @@ Configure em cada repositório do GitHub:
 
 ### 3. Criar o ambiente temporário
 
-Copie `terraform.tfvars.example` para `terraform.tfvars` e informe as URLs
-completas das imagens, incluindo a tag do commit. Depois execute na raiz:
+Copie `terraform.tfvars.example` para `terraform.tfvars`. Por padrão, o
+Terraform consulta o ECR e seleciona automaticamente as imagens publicadas mais
+recentemente pelo Backend e Frontend. Depois execute na raiz:
 
 Inicialize o Terraform:
 
@@ -215,6 +216,10 @@ padrão, o Terraform cria um Instance Profile com leitura do ECR. Se a conta
 acadêmica bloquear criação de IAM, defina `create_ec2_instance_profile = false`
 e informe um `ec2_instance_profile_name` existente com essa permissão. Quando
 usar o Google Calendar, o perfil existente também precisa ler o secret indicado.
+
+Para rollback, defina opcionalmente `backend_image_uri` e/ou
+`frontend_image_uri` com uma tag ou digest imutável. Sem essas variáveis, cada
+nova criação do ambiente utiliza automaticamente as imagens mais recentes.
 
 Para habilitar o Google Calendar, armazene o JSON da conta de serviço no AWS
 Secrets Manager e informe somente seu ARN em `google_calendar_secret_arn`.

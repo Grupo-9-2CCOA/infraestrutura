@@ -16,9 +16,10 @@ mysql_database = "doces_com_amor"
 mysql_user     = "admin"
 mysql_password = "ALTERAR_LOCALMENTE"
 
-# Use immutable commit SHA tags published by the application workflows.
-backend_image_uri  = "123456789012.dkr.ecr.us-east-1.amazonaws.com/doces-com-amor-backend:COMMIT_SHA"
-frontend_image_uri = "123456789012.dkr.ecr.us-east-1.amazonaws.com/doces-com-amor-frontend:COMMIT_SHA"
+# By default, Terraform selects the most recently published ECR images.
+# Optionally pin immutable images for rollback:
+# backend_image_uri  = "123456789012.dkr.ecr.us-east-1.amazonaws.com/doces-com-amor-backend:COMMIT_SHA"
+# frontend_image_uri = "123456789012.dkr.ecr.us-east-1.amazonaws.com/doces-com-amor-frontend:COMMIT_SHA"
 
 # AWS Academy may prohibit IAM creation. In that case, use an existing profile:
 # create_ec2_instance_profile = false
