@@ -75,6 +75,7 @@ A infraestrutura é composta por:
 - 3 buckets Amazon S3;
 - Amazon CloudWatch;
 - Amazon SNS.
+- 2 repositórios Amazon ECR persistentes, gerenciados separadamente em `bootstrap/`.
 
 ## Armazenamento e Análise de Dados
 
@@ -154,6 +155,37 @@ aws --version
 
 ## Execução
 
+### 1. Criar os repositórios de imagens
+
+O diretório `bootstrap/` possui estado separado para que os repositórios ECR não
+sejam removidos junto com o ambiente temporário:
+
+```bash
+cd bootstrap
+terraform init
+terraform apply
+```
+
+Anote as URLs exibidas nos outputs. Essa etapa é executada apenas na preparação
+inicial da conta AWS.
+
+### 2. Publicar as imagens
+
+Os repositórios Backend e Frontend possuem workflows que, após merge na `main`,
+executam os testes e publicam uma imagem com a tag imutável do commit.
+
+Configure em cada repositório do GitHub:
+
+- variável `AWS_REGION`;
+- secret `AWS_ROLE_ARN`, quando OIDC estiver disponível; ou
+- secrets temporários `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` e
+  `AWS_SESSION_TOKEN`, para AWS Academy.
+
+### 3. Criar o ambiente temporário
+
+Copie `terraform.tfvars.example` para `terraform.tfvars` e informe as URLs
+completas das imagens, incluindo a tag do commit. Depois execute na raiz:
+
 Inicialize o Terraform:
 
 ```bash
@@ -178,11 +210,27 @@ Provisione a infraestrutura:
 terraform apply
 ```
 
+As EC2 instalam Docker, autenticam no ECR e iniciam os containers reais. Por
+padrão, o Terraform cria um Instance Profile com leitura do ECR. Se a conta
+acadêmica bloquear criação de IAM, defina `create_ec2_instance_profile = false`
+e informe um `ec2_instance_profile_name` existente com essa permissão. Quando
+usar o Google Calendar, o perfil existente também precisa ler o secret indicado.
+
+Para habilitar o Google Calendar, armazene o JSON da conta de serviço no AWS
+Secrets Manager e informe somente seu ARN em `google_calendar_secret_arn`.
+
+> A credencial AWS configurada localmente precisa estar válida antes de `plan`
+> ou `apply`. A infraestrutura não é criada pelos workflows das aplicações.
+
 Para remover os recursos provisionados:
 
 ```bash
 terraform destroy
 ```
+
+O `destroy` deve ser executado logo após testes e apresentações para interromper
+os custos de EC2, ALB e NAT Gateway. Os repositórios ECR permanecem porque usam
+o estado Terraform independente do diretório `bootstrap/`.
 
 ## Projeto
 

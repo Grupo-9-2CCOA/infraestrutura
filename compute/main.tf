@@ -51,13 +51,19 @@ resource "aws_instance" "backend_a" {
   instance_type          = var.backend_instance_type
   subnet_id              = var.backend_subnet_a_id
   vpc_security_group_ids = [var.backend_a_sg_id]
+  iam_instance_profile   = var.instance_profile_name
 
   user_data = templatefile("${path.module}/user-data/backend.sh", {
-    backend_name     = "Backend A"
-    backend_port     = var.backend_port
-    mysql_private_ip = aws_instance.mysql.private_ip
-    mysql_database   = var.mysql_database
-    mysql_user       = var.mysql_user
+    aws_region         = var.aws_region
+    backend_image_uri  = var.backend_image_uri
+    backend_port       = var.backend_port
+    mysql_private_ip   = aws_instance.mysql.private_ip
+    mysql_database     = var.mysql_database
+    mysql_user         = var.mysql_user
+    mysql_password_b64 = base64encode(var.mysql_password)
+    jwt_secret_b64     = base64encode(var.jwt_secret)
+    google_calendar_id = var.google_calendar_id
+    google_secret_arn  = var.google_secret_arn != null ? var.google_secret_arn : ""
   })
   user_data_replace_on_change = true
 
@@ -82,13 +88,19 @@ resource "aws_instance" "backend_b" {
   instance_type          = var.backend_instance_type
   subnet_id              = var.backend_subnet_b_id
   vpc_security_group_ids = [var.backend_b_sg_id]
+  iam_instance_profile   = var.instance_profile_name
 
   user_data = templatefile("${path.module}/user-data/backend.sh", {
-    backend_name     = "Backend B"
-    backend_port     = var.backend_port
-    mysql_private_ip = aws_instance.mysql.private_ip
-    mysql_database   = var.mysql_database
-    mysql_user       = var.mysql_user
+    aws_region         = var.aws_region
+    backend_image_uri  = var.backend_image_uri
+    backend_port       = var.backend_port
+    mysql_private_ip   = aws_instance.mysql.private_ip
+    mysql_database     = var.mysql_database
+    mysql_user         = var.mysql_user
+    mysql_password_b64 = base64encode(var.mysql_password)
+    jwt_secret_b64     = base64encode(var.jwt_secret)
+    google_calendar_id = var.google_calendar_id
+    google_secret_arn  = var.google_secret_arn != null ? var.google_secret_arn : ""
   })
   user_data_replace_on_change = true
 
@@ -114,9 +126,11 @@ resource "aws_instance" "frontend_a" {
   subnet_id                   = var.public_subnet_a_id
   vpc_security_group_ids      = [var.frontend_a_sg_id]
   associate_public_ip_address = true
+  iam_instance_profile        = var.instance_profile_name
 
   user_data = templatefile("${path.module}/user-data/frontend.sh", {
-    frontend_name      = "Frontend A"
+    aws_region         = var.aws_region
+    frontend_image_uri = var.frontend_image_uri
     backend_private_ip = aws_instance.backend_a.private_ip
     frontend_port      = var.frontend_port
     backend_port       = var.backend_port
@@ -145,9 +159,11 @@ resource "aws_instance" "frontend_b" {
   subnet_id                   = var.public_subnet_b_id
   vpc_security_group_ids      = [var.frontend_b_sg_id]
   associate_public_ip_address = true
+  iam_instance_profile        = var.instance_profile_name
 
   user_data = templatefile("${path.module}/user-data/frontend.sh", {
-    frontend_name      = "Frontend B"
+    aws_region         = var.aws_region
+    frontend_image_uri = var.frontend_image_uri
     backend_private_ip = aws_instance.backend_b.private_ip
     frontend_port      = var.frontend_port
     backend_port       = var.backend_port
