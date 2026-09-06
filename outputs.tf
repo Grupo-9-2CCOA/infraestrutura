@@ -83,3 +83,7 @@ output "sns_topic_arn" {
   value       = module.observability.sns_topic_arn
 }
 
+output "ec2_instance_profile_name" {
+  description = "Instance profile used by the application EC2 instances."
+  value       = local.ec2_instance_profile_name
+}

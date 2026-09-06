@@ -3,44 +3,24 @@ set -euo pipefail
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y nginx
+apt-get install -y curl docker.io unzip
+systemctl enable --now docker
 
-cat > /var/www/html/index.html <<'HTML'
-<!doctype html>
-<html lang="pt-BR">
-  <head><meta charset="utf-8"><title>${frontend_name}</title></head>
-  <body>
-    <h1>${frontend_name}</h1>
-    <p>Backend pareado: ${backend_private_ip}:${backend_port}</p>
-  </body>
-</html>
-HTML
+curl --fail --silent --show-error \
+  'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' \
+  --output /tmp/awscliv2.zip
+unzip -q /tmp/awscliv2.zip -d /tmp
+/tmp/aws/install
+rm -rf /tmp/aws /tmp/awscliv2.zip
 
-cat > /etc/nginx/sites-available/default <<'NGINX'
-server {
-    listen ${frontend_port} default_server;
-    listen [::]:${frontend_port} default_server;
-
-    root /var/www/html;
-    index index.html;
-
-    location = /health {
-        access_log off;
-        add_header Content-Type text/plain;
-        return 200 'healthy';
-    }
-
-    location /api/ {
-        proxy_pass http://${backend_private_ip}:${backend_port}/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    location / {
-        try_files $uri $uri/ =404;
-    }
-}
-NGINX
-
-nginx -t
-systemctl enable --now nginx
+REGISTRY="$(printf '%s' '${frontend_image_uri}' | cut -d/ -f1)"
+aws ecr get-login-password --region '${aws_region}' | docker login --username AWS --password-stdin "$REGISTRY"
+docker pull '${frontend_image_uri}'
+docker rm -f doces-com-amor-frontend 2>/dev/null || true
+docker run --detach \
+  --name doces-com-amor-frontend \
+  --restart unless-stopped \
+  --publish '${frontend_port}:80' \
+  --env BACKEND_HOST='${backend_private_ip}' \
+  --env BACKEND_PORT='${backend_port}' \
+  '${frontend_image_uri}'

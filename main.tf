@@ -38,6 +38,13 @@ module "compute" {
   mysql_instance_type    = var.mysql_instance_type
   frontend_port          = var.frontend_port
   backend_port           = var.backend_port
+  aws_region             = var.aws_region
+  backend_image_uri      = var.backend_image_uri
+  frontend_image_uri     = var.frontend_image_uri
+  instance_profile_name  = local.ec2_instance_profile_name
+  jwt_secret             = random_id.jwt_secret.b64_std
+  google_calendar_id     = var.google_calendar_id
+  google_secret_arn      = var.google_calendar_secret_arn
   mysql_database         = var.mysql_database
   mysql_user             = var.mysql_user
   mysql_password         = var.mysql_password

@@ -78,6 +78,44 @@ variable "backend_port" {
   type        = number
 }
 
+variable "aws_region" {
+  description = "AWS region containing the ECR repositories."
+  type        = string
+}
+
+variable "backend_image_uri" {
+  description = "Complete backend image URI."
+  type        = string
+}
+
+variable "frontend_image_uri" {
+  description = "Complete frontend image URI."
+  type        = string
+}
+
+variable "instance_profile_name" {
+  description = "IAM instance profile that permits ECR image pulls."
+  type        = string
+}
+
+variable "jwt_secret" {
+  description = "JWT signing key passed to the backend containers."
+  type        = string
+  sensitive   = true
+}
+
+variable "google_calendar_id" {
+  description = "Google Calendar identifier used by the backend."
+  type        = string
+}
+
+variable "google_secret_arn" {
+  description = "Optional Secrets Manager ARN containing Google service-account JSON."
+  type        = string
+  default     = null
+  nullable    = true
+}
+
 variable "mysql_database" {
   description = "Initial MySQL database name."
   type        = string

@@ -81,6 +81,42 @@ variable "backend_port" {
   default     = 8080
 }
 
+variable "backend_image_uri" {
+  description = "Complete ECR URI and immutable tag of the backend image."
+  type        = string
+}
+
+variable "frontend_image_uri" {
+  description = "Complete ECR URI and immutable tag of the frontend image."
+  type        = string
+}
+
+variable "google_calendar_secret_arn" {
+  description = "Optional Secrets Manager ARN whose SecretString is the Google Calendar service-account JSON."
+  type        = string
+  default     = null
+  nullable    = true
+}
+
+variable "google_calendar_id" {
+  description = "Google Calendar identifier used by the backend."
+  type        = string
+  default     = "3db8bb13db53a3d6b5ce7c6c43795907d1d478f0ff226f066d11acc5c56b06f8@group.calendar.google.com"
+}
+
+variable "create_ec2_instance_profile" {
+  description = "Create an IAM instance profile that allows EC2 instances to pull from ECR."
+  type        = bool
+  default     = true
+}
+
+variable "ec2_instance_profile_name" {
+  description = "Existing instance profile used when IAM creation is restricted."
+  type        = string
+  default     = null
+  nullable    = true
+}
+
 variable "mysql_database" {
   description = "Initial application database created in MySQL."
   type        = string
@@ -127,4 +163,3 @@ variable "alarm_email" {
   default     = null
   nullable    = true
 }
-

@@ -3,58 +3,56 @@ set -euo pipefail
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y python3
+apt-get install -y curl docker.io unzip
+systemctl enable --now docker
 
-cat > /etc/backend.env <<'ENV'
-BACKEND_NAME=${backend_name}
-MYSQL_HOST=${mysql_private_ip}
-MYSQL_PORT=3306
-MYSQL_DATABASE=${mysql_database}
-MYSQL_USER=${mysql_user}
+curl --fail --silent --show-error \
+  'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' \
+  --output /tmp/awscliv2.zip
+unzip -q /tmp/awscliv2.zip -d /tmp
+/tmp/aws/install
+rm -rf /tmp/aws /tmp/awscliv2.zip
+
+MYSQL_PASSWORD="$(printf '%s' '${mysql_password_b64}' | base64 --decode)"
+JWT_SECRET="$(printf '%s' '${jwt_secret_b64}' | base64 --decode)"
+
+install -d -m 700 /etc/doces-com-amor
+cat > /etc/doces-com-amor/backend.env <<ENV
+SPRING_DATASOURCE_URL=jdbc:mysql://${mysql_private_ip}:3306/${mysql_database}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+SPRING_DATASOURCE_USERNAME=${mysql_user}
+SPRING_DATASOURCE_PASSWORD=$MYSQL_PASSWORD
+JWT_SECRET=$JWT_SECRET
+JWT_VALIDITY=3600
+GOOGLE_CALENDAR_ID=${google_calendar_id}
 ENV
-chmod 600 /etc/backend.env
+chmod 600 /etc/doces-com-amor/backend.env
+unset MYSQL_PASSWORD JWT_SECRET
 
-cat > /usr/local/bin/backend.py <<'PYTHON'
-import json
-import os
-from http.server import BaseHTTPRequestHandler, HTTPServer
+if [ -n '${google_secret_arn}' ]; then
+  aws secretsmanager get-secret-value \
+    --region '${aws_region}' \
+    --secret-id '${google_secret_arn}' \
+    --query SecretString \
+    --output text > /etc/doces-com-amor/google-calendar-key.json
+  chmod 600 /etc/doces-com-amor/google-calendar-key.json
+  echo 'GOOGLE_CALENDAR_CREDENTIALS_PATH=/run/secrets/google-calendar-key.json' >> /etc/doces-com-amor/backend.env
+fi
 
+REGISTRY="$(printf '%s' '${backend_image_uri}' | cut -d/ -f1)"
+aws ecr get-login-password --region '${aws_region}' | docker login --username AWS --password-stdin "$REGISTRY"
+docker pull '${backend_image_uri}'
+docker rm -f doces-com-amor-backend 2>/dev/null || true
 
-class Handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        status = 200
-        payload = {
-            "service": os.environ.get("BACKEND_NAME"),
-            "database_host": os.environ.get("MYSQL_HOST"),
-            "status": "healthy",
-        }
-        body = json.dumps(payload).encode()
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
+DOCKER_ARGS=(
+  --detach
+  --name doces-com-amor-backend
+  --restart unless-stopped
+  --env-file /etc/doces-com-amor/backend.env
+  --publish '${backend_port}:8080'
+)
 
+if [ -n '${google_secret_arn}' ]; then
+  DOCKER_ARGS+=(--volume /etc/doces-com-amor/google-calendar-key.json:/run/secrets/google-calendar-key.json:ro)
+fi
 
-HTTPServer(("0.0.0.0", ${backend_port}), Handler).serve_forever()
-PYTHON
-
-cat > /etc/systemd/system/backend.service <<'SERVICE'
-[Unit]
-Description=Example paired backend service
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-EnvironmentFile=/etc/backend.env
-ExecStart=/usr/bin/python3 /usr/local/bin/backend.py
-Restart=always
-User=nobody
-
-[Install]
-WantedBy=multi-user.target
-SERVICE
-
-systemctl daemon-reload
-systemctl enable --now backend
-
+docker run "$${DOCKER_ARGS[@]}" '${backend_image_uri}'
