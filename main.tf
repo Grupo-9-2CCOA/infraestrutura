@@ -22,6 +22,8 @@ module "security" {
 module "compute" {
   source = "./compute"
 
+  depends_on = [module.network]
+
   project_name           = var.project_name
   public_subnet_a_id     = module.network.public_subnet_a_id
   public_subnet_b_id     = module.network.public_subnet_b_id

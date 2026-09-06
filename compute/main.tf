@@ -23,6 +23,7 @@ resource "aws_instance" "mysql" {
   instance_type          = var.mysql_instance_type
   subnet_id              = var.database_subnet_id
   vpc_security_group_ids = [var.mysql_sg_id]
+  iam_instance_profile   = var.instance_profile_name
 
   user_data = templatefile("${path.module}/user-data/mysql.sh", {
     mysql_database     = var.mysql_database
