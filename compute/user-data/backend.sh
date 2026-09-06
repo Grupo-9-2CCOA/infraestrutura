@@ -34,7 +34,7 @@ if [ -n '${google_secret_arn}' ]; then
     --secret-id '${google_secret_arn}' \
     --query SecretString \
     --output text > /etc/doces-com-amor/google-calendar-key.json
-  chmod 600 /etc/doces-com-amor/google-calendar-key.json
+  chmod 444 /etc/doces-com-amor/google-calendar-key.json
   echo 'GOOGLE_CALENDAR_CREDENTIALS_PATH=/run/secrets/google-calendar-key.json' >> /etc/doces-com-amor/backend.env
 fi
 
