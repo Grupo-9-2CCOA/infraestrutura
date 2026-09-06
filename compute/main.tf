@@ -63,7 +63,7 @@ resource "aws_instance" "backend_a" {
     mysql_password_b64 = base64encode(var.mysql_password)
     jwt_secret_b64     = base64encode(var.jwt_secret)
     google_calendar_id = var.google_calendar_id
-    google_secret_arn  = coalesce(var.google_secret_arn, "")
+    google_secret_arn  = var.google_secret_arn != null ? var.google_secret_arn : ""
   })
   user_data_replace_on_change = true
 
@@ -100,7 +100,7 @@ resource "aws_instance" "backend_b" {
     mysql_password_b64 = base64encode(var.mysql_password)
     jwt_secret_b64     = base64encode(var.jwt_secret)
     google_calendar_id = var.google_calendar_id
-    google_secret_arn  = coalesce(var.google_secret_arn, "")
+    google_secret_arn  = var.google_secret_arn != null ? var.google_secret_arn : ""
   })
   user_data_replace_on_change = true
 
