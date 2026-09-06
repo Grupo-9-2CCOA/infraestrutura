@@ -1,6 +1,10 @@
 aws_region   = "us-east-1"
 project_name = "doces-com-amor"
 
+# AWS Academy denies an S3 API required by the Terraform AWS provider.
+# Enable this only in an account where s3:GetBucketObjectLockConfiguration is allowed.
+enable_data_lake = false
+
 vpc_cidr              = "10.0.0.0/16"
 public_subnet_a_cidr  = "10.0.1.0/24"
 public_subnet_b_cidr  = "10.0.2.0/24"

@@ -67,6 +67,7 @@ module "load_balancer" {
 
 module "storage" {
   source = "./storage"
+  count  = var.enable_data_lake ? 1 : 0
 
   project_name = var.project_name
 }
@@ -79,6 +80,6 @@ module "observability" {
   ec2_instance_ids        = module.compute.instance_ids
   alb_arn_suffix          = module.load_balancer.alb_arn_suffix
   target_group_arn_suffix = module.load_balancer.target_group_arn_suffix
-  bucket_names            = module.storage.bucket_names
+  bucket_names            = var.enable_data_lake ? module.storage[0].bucket_names : {}
   alarm_email             = var.alarm_email
 }

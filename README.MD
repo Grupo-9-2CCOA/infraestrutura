@@ -72,7 +72,7 @@ A infraestrutura é composta por:
 - Route Tables;
 - Security Groups;
 - VPC Endpoint para Amazon S3;
-- 3 buckets Amazon S3;
+- Data Lake opcional com 3 buckets Amazon S3;
 - Amazon CloudWatch;
 - Amazon SNS.
 - 2 repositórios Amazon ECR persistentes, gerenciados separadamente em `bootstrap/`.
@@ -80,6 +80,14 @@ A infraestrutura é composta por:
 ## Armazenamento e Análise de Dados
 
 O projeto utiliza três buckets Amazon S3 para organizar os dados destinados à análise.
+
+O módulo permanece implementado para evolução futura, mas vem desabilitado por
+padrão porque a política da AWS Academy nega uma consulta de Object Lock exigida
+pelo provider Terraform. Em uma conta compatível, habilite-o com:
+
+```hcl
+enable_data_lake = true
+```
 
 ### Bronze
 
