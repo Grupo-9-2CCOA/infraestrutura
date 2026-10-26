@@ -29,7 +29,12 @@ mysql_password = "ALTERAR_LOCALMENTE"
 # create_ec2_instance_profile = false
 # ec2_instance_profile_name   = "LabInstanceProfile"
 
-# Optional: SecretString must contain the Google service-account JSON.
+# Optional: path to the Google service-account JSON outside the repository.
+# Terraform stores its contents in Secrets Manager during apply.
+# The value is persisted in terraform.tfstate, so protect the state file.
+# google_calendar_credentials_file = "C:/Users/you/.secrets/google-calendar-key.json"
+
+# Optional: use a secret created/managed outside Terraform instead.
 # google_calendar_secret_arn = "arn:aws:secretsmanager:us-east-1:123456789012:secret:google-calendar"
 
 # Optional: create the HTTPS listener with an already validated ACM certificate.

@@ -4,7 +4,27 @@ set -euo pipefail
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get install -y curl docker.io unzip
+
 systemctl enable --now docker
+
+if [ '${install_rabbitmq}' = "true" ]; then
+  apt-get install -y rabbitmq-server
+
+  # RabbitMQ must accept connections from the Lambda consumer over the VPC.
+  mkdir -p /etc/rabbitmq
+  cat > /etc/rabbitmq/rabbitmq.conf <<EOF
+listeners.tcp.default = 5672
+loopback_users.guest = false
+EOF
+
+  systemctl enable rabbitmq-server
+  systemctl restart rabbitmq-server
+  for attempt in $(seq 1 30); do
+    rabbitmqctl await_startup >/dev/null 2>&1 && break
+    sleep 2
+  done
+  rabbitmqctl set_permissions -p / guest ".*" ".*" ".*"
+fi
 
 curl --fail --silent --show-error \
   'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' \
@@ -23,36 +43,28 @@ SPRING_DATASOURCE_USERNAME=${mysql_user}
 SPRING_DATASOURCE_PASSWORD=$MYSQL_PASSWORD
 JWT_SECRET=$JWT_SECRET
 JWT_VALIDITY=3600
-GOOGLE_CALENDAR_ID=${google_calendar_id}
+SPRING_RABBITMQ_HOST='${rabbitmq_host}'
+SPRING_RABBITMQ_PORT=5672
+SPRING_RABBITMQ_USERNAME=guest
+SPRING_RABBITMQ_PASSWORD=guest
 ENV
 chmod 600 /etc/doces-com-amor/backend.env
 unset MYSQL_PASSWORD JWT_SECRET
 
-if [ -n '${google_secret_arn}' ]; then
-  aws secretsmanager get-secret-value \
-    --region '${aws_region}' \
-    --secret-id '${google_secret_arn}' \
-    --query SecretString \
-    --output text > /etc/doces-com-amor/google-calendar-key.json
-  chmod 444 /etc/doces-com-amor/google-calendar-key.json
-  echo 'GOOGLE_CALENDAR_CREDENTIALS_PATH=/run/secrets/google-calendar-key.json' >> /etc/doces-com-amor/backend.env
-fi
-
 REGISTRY="$(printf '%s' '${backend_image_uri}' | cut -d/ -f1)"
-aws ecr get-login-password --region '${aws_region}' | docker login --username AWS --password-stdin "$REGISTRY"
+case "$REGISTRY" in
+  *.dkr.ecr.*.amazonaws.com)
+    aws ecr get-login-password --region '${aws_region}' | docker login --username AWS --password-stdin "$REGISTRY"
+    ;;
+esac
 docker pull '${backend_image_uri}'
 docker rm -f doces-com-amor-backend 2>/dev/null || true
 
-DOCKER_ARGS=(
-  --detach
-  --name doces-com-amor-backend
-  --restart unless-stopped
-  --env-file /etc/doces-com-amor/backend.env
-  --publish '${backend_port}:8080'
-)
-
-if [ -n '${google_secret_arn}' ]; then
-  DOCKER_ARGS+=(--volume /etc/doces-com-amor/google-calendar-key.json:/run/secrets/google-calendar-key.json:ro)
-fi
-
-docker run "$${DOCKER_ARGS[@]}" '${backend_image_uri}'
+docker run \
+  --detach \
+  --name doces-com-amor-backend \
+  --restart unless-stopped \
+  --add-host host.docker.internal:host-gateway \
+  --env-file /etc/doces-com-amor/backend.env \
+  --publish '${backend_port}:8080' \
+  '${backend_image_uri}'

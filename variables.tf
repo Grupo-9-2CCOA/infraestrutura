@@ -121,9 +121,36 @@ variable "google_calendar_secret_arn" {
 }
 
 variable "google_calendar_id" {
-  description = "Google Calendar identifier used by the backend."
+  description = "Google Calendar identifier used by the application."
   type        = string
-  default     = "3db8bb13db53a3d6b5ce7c6c43795907d1d478f0ff226f066d11acc5c56b06f8@group.calendar.google.com"
+  default     = ""
+}
+
+variable "google_calendar_credentials_file" {
+  description = "Optional path to the Google service-account JSON. When set, Terraform seeds the Lambda consumer secret automatically."
+  type        = string
+  default     = null
+  nullable    = true
+}
+
+variable "rabbitmq_username" {
+  description = "RabbitMQ username for Lambda consumer."
+  type        = string
+  default     = "guest"
+}
+
+variable "rabbitmq_password" {
+  description = "RabbitMQ password for Lambda consumer."
+  type        = string
+  default     = "guest"
+  sensitive   = true
+}
+
+variable "lambda_existing_role_arn" {
+  description = "Existing IAM role ARN for the Lambda consumer. Use in accounts that deny iam:CreateRole (for example AWS Academy)."
+  type        = string
+  default     = null
+  nullable    = true
 }
 
 variable "create_ec2_instance_profile" {

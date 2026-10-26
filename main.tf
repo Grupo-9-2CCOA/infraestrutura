@@ -15,6 +15,7 @@ module "security" {
 
   project_name  = var.project_name
   vpc_id        = module.network.vpc_id
+  vpc_cidr      = var.vpc_cidr
   frontend_port = var.frontend_port
   backend_port  = var.backend_port
 }
@@ -45,8 +46,6 @@ module "compute" {
   frontend_image_uri     = local.resolved_frontend_image_uri
   instance_profile_name  = local.ec2_instance_profile_name
   jwt_secret             = random_id.jwt_secret.b64_std
-  google_calendar_id     = var.google_calendar_id
-  google_secret_arn      = var.google_calendar_secret_arn
   mysql_database         = var.mysql_database
   mysql_user             = var.mysql_user
   mysql_password         = var.mysql_password
@@ -82,4 +81,21 @@ module "observability" {
   target_group_arn_suffix = module.load_balancer.target_group_arn_suffix
   bucket_names            = var.enable_data_lake ? module.storage[0].bucket_names : {}
   alarm_email             = var.alarm_email
+}
+
+module "lambda_consumer" {
+  source = "./lambda-consumer"
+
+  project_name                     = var.project_name
+  vpc_id                           = module.network.vpc_id
+  private_subnet_ids               = [module.network.backend_subnet_a_id, module.network.backend_subnet_b_id]
+  lambda_security_group_id         = module.security.lambda_consumer_sg_id
+  rabbitmq_host                    = module.compute.backend_a_private_ip
+  rabbitmq_port                    = 5672
+  rabbitmq_username                = var.rabbitmq_username
+  rabbitmq_password                = var.rabbitmq_password
+  rabbitmq_queue                   = "calendar.events.queue"
+  google_calendar_id               = var.google_calendar_id
+  google_calendar_credentials_file = var.google_calendar_credentials_file
+  existing_lambda_role_arn         = var.lambda_existing_role_arn
 }

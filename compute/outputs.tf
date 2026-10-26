@@ -28,6 +28,16 @@ output "mysql_private_ip" {
   value       = aws_instance.mysql.private_ip
 }
 
+output "backend_a_private_ip" {
+  description = "Private IP of backend A instance."
+  value       = aws_instance.backend_a.private_ip
+}
+
+output "backend_b_private_ip" {
+  description = "Private IP of backend B instance."
+  value       = aws_instance.backend_b.private_ip
+}
+
 output "instance_ids" {
   description = "Map of logical instance names to EC2 instance IDs."
   value = {

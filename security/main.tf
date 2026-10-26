@@ -189,3 +189,70 @@ resource "aws_security_group" "mysql" {
   }
 }
 
+resource "aws_security_group" "lambda_consumer" {
+  name_prefix = "${var.project_name}-lambda-consumer-"
+  description = "Lambda consumer for RabbitMQ calendar events"
+  vpc_id      = var.vpc_id
+
+  egress {
+    description     = "AMQP to backend instances"
+    from_port       = 5672
+    to_port         = 5672
+    protocol        = "tcp"
+    security_groups = [aws_security_group.backend_a.id, aws_security_group.backend_b.id]
+  }
+
+  egress {
+    description = "DNS resolution through the VPC resolver"
+    from_port   = 53
+    to_port     = 53
+    protocol    = "udp"
+    cidr_blocks = [var.vpc_cidr]
+  }
+
+  egress {
+    description = "HTTPS to Google APIs and Secrets Manager"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.project_name}-lambda-consumer-sg"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group_rule" "backend_a_amqp_from_lambda" {
+  type                     = "ingress"
+  description              = "AMQP from Lambda consumer"
+  from_port                = 5672
+  to_port                  = 5672
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.backend_a.id
+  source_security_group_id = aws_security_group.lambda_consumer.id
+}
+
+resource "aws_security_group_rule" "backend_b_amqp_from_lambda" {
+  type                     = "ingress"
+  description              = "AMQP from Lambda consumer"
+  from_port                = 5672
+  to_port                  = 5672
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.backend_b.id
+  source_security_group_id = aws_security_group.lambda_consumer.id
+}
+
+resource "aws_security_group_rule" "backend_a_amqp_from_backend_b" {
+  type                     = "ingress"
+  description              = "AMQP from backend B producer"
+  from_port                = 5672
+  to_port                  = 5672
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.backend_a.id
+  source_security_group_id = aws_security_group.backend_b.id
+}

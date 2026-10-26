@@ -229,8 +229,13 @@ Para rollback, defina opcionalmente `backend_image_uri` e/ou
 `frontend_image_uri` com uma tag ou digest imutável. Sem essas variáveis, cada
 nova criação do ambiente utiliza automaticamente as imagens mais recentes.
 
-Para habilitar o Google Calendar, armazene o JSON da conta de serviço no AWS
-Secrets Manager e informe somente seu ARN em `google_calendar_secret_arn`.
+Para habilitar o Google Calendar, mantenha o JSON da conta de serviço **fora do
+repositório** (por exemplo em `~/.secrets/google-calendar-key.json`) e informe o
+caminho em `google_calendar_credentials_file`. O Terraform grava o conteúdo no
+Secrets Manager durante o `apply`, e a Lambda passa a autenticar sem nenhum passo
+manual. Como o valor fica em texto puro no `terraform.tfstate`, proteja esse
+arquivo. Alternativamente, crie o secret fora do Terraform e informe apenas o ARN
+em `google_calendar_secret_arn`.
 
 > A credencial AWS configurada localmente precisa estar válida antes de `plan`
 > ou `apply`. A infraestrutura não é criada pelos workflows das aplicações.

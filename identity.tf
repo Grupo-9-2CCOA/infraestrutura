@@ -29,21 +29,6 @@ resource "aws_iam_instance_profile" "ec2_ecr" {
   role = aws_iam_role.ec2_ecr[0].name
 }
 
-resource "aws_iam_role_policy" "google_calendar_secret" {
-  count = var.create_ec2_instance_profile && var.google_calendar_secret_arn != null ? 1 : 0
-
-  name = "read-google-calendar-secret"
-  role = aws_iam_role.ec2_ecr[0].id
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = ["secretsmanager:GetSecretValue"]
-      Resource = var.google_calendar_secret_arn
-    }]
-  })
-}
-
 resource "random_id" "jwt_secret" {
   byte_length = 32
 }

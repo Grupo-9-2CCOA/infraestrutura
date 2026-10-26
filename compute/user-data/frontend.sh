@@ -14,7 +14,11 @@ unzip -q /tmp/awscliv2.zip -d /tmp
 rm -rf /tmp/aws /tmp/awscliv2.zip
 
 REGISTRY="$(printf '%s' '${frontend_image_uri}' | cut -d/ -f1)"
-aws ecr get-login-password --region '${aws_region}' | docker login --username AWS --password-stdin "$REGISTRY"
+case "$REGISTRY" in
+  *.dkr.ecr.*.amazonaws.com)
+    aws ecr get-login-password --region '${aws_region}' | docker login --username AWS --password-stdin "$REGISTRY"
+    ;;
+esac
 docker pull '${frontend_image_uri}'
 docker rm -f doces-com-amor-frontend 2>/dev/null || true
 docker run --detach \

@@ -4,6 +4,7 @@
 *.tfvars
 !terraform.tfvars.example
 *.tfplan
+tfplan
 crash.log
 crash.*.log
 *.pem
@@ -14,4 +15,10 @@ override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
+secrets/
 
+# Lambda consumer build artifacts
+lambda-consumer/build/
+lambda-consumer/lambda.zip
+__pycache__/
+*.pyc

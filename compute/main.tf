@@ -63,8 +63,8 @@ resource "aws_instance" "backend_a" {
     mysql_user         = var.mysql_user
     mysql_password_b64 = base64encode(var.mysql_password)
     jwt_secret_b64     = base64encode(var.jwt_secret)
-    google_calendar_id = var.google_calendar_id
-    google_secret_arn  = var.google_secret_arn != null ? var.google_secret_arn : ""
+    rabbitmq_host      = "host.docker.internal"
+    install_rabbitmq   = "true"
   })
   user_data_replace_on_change = true
 
@@ -100,8 +100,8 @@ resource "aws_instance" "backend_b" {
     mysql_user         = var.mysql_user
     mysql_password_b64 = base64encode(var.mysql_password)
     jwt_secret_b64     = base64encode(var.jwt_secret)
-    google_calendar_id = var.google_calendar_id
-    google_secret_arn  = var.google_secret_arn != null ? var.google_secret_arn : ""
+    rabbitmq_host      = aws_instance.backend_a.private_ip
+    install_rabbitmq   = "false"
   })
   user_data_replace_on_change = true
 

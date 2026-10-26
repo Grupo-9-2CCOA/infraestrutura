@@ -27,3 +27,8 @@ output "mysql_sg_id" {
   description = "ID of the MySQL security group."
   value       = aws_security_group.mysql.id
 }
+
+output "lambda_consumer_sg_id" {
+  description = "ID of the Lambda consumer security group."
+  value       = aws_security_group.lambda_consumer.id
+}

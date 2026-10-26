@@ -104,18 +104,6 @@ variable "jwt_secret" {
   sensitive   = true
 }
 
-variable "google_calendar_id" {
-  description = "Google Calendar identifier used by the backend."
-  type        = string
-}
-
-variable "google_secret_arn" {
-  description = "Optional Secrets Manager ARN containing Google service-account JSON."
-  type        = string
-  default     = null
-  nullable    = true
-}
-
 variable "mysql_database" {
   description = "Initial MySQL database name."
   type        = string
