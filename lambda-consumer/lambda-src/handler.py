@@ -149,7 +149,7 @@ def notify_backend(pedido_id, event_id):
         return
     try:
         import requests
-        url = f"http://{backend_host}:{backend_port}/internal/pedidos/{pedido_id}/calendar-event"
+        url = f"http://{backend_host}:{backend_port}/calendar-event/{pedido_id}"
         payload = {"eventoGoogleCalendarId": event_id}
         resp = requests.patch(url, json=payload, timeout=5)
         logger.info('Notified backend to link calendar event: status=%s', resp.status_code)
