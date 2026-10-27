@@ -203,6 +203,14 @@ resource "aws_security_group" "lambda_consumer" {
   }
 
   egress {
+    description     = "API calls to backend A to link calendar events"
+    from_port       = var.backend_port
+    to_port         = var.backend_port
+    protocol        = "tcp"
+    security_groups = [aws_security_group.backend_a.id]
+  }
+
+  egress {
     description = "DNS resolution through the VPC resolver"
     from_port   = 53
     to_port     = 53
@@ -232,6 +240,16 @@ resource "aws_security_group_rule" "backend_a_amqp_from_lambda" {
   description              = "AMQP from Lambda consumer"
   from_port                = 5672
   to_port                  = 5672
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.backend_a.id
+  source_security_group_id = aws_security_group.lambda_consumer.id
+}
+
+resource "aws_security_group_rule" "backend_a_api_from_lambda" {
+  type                     = "ingress"
+  description              = "API calls from Lambda consumer to link calendar events"
+  from_port                = var.backend_port
+  to_port                  = var.backend_port
   protocol                 = "tcp"
   security_group_id        = aws_security_group.backend_a.id
   source_security_group_id = aws_security_group.lambda_consumer.id
