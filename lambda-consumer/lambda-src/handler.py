@@ -68,6 +68,8 @@ def build_event(command):
 def parse_datetime(value):
     if not value:
         return None
+    if isinstance(value, list):
+        return datetime(*value[:6]).replace(tzinfo=timezone(timedelta(hours=-3)))
     if isinstance(value, (int, float)):
         return datetime.fromtimestamp(value, tz=timezone.utc).astimezone(timezone(timedelta(hours=-3)))
     if isinstance(value, str):
@@ -149,7 +151,7 @@ def notify_backend(pedido_id, event_id):
         return
     try:
         import requests
-        url = f"http://{backend_host}:{backend_port}/calendar-event/{pedido_id}"
+        url = f"http://{backend_host}:{backend_port}/pedidos/calendar-event/{pedido_id}"
         payload = {"eventoGoogleCalendarId": event_id}
         resp = requests.patch(url, json=payload, timeout=5)
         logger.info('Notified backend to link calendar event: status=%s', resp.status_code)
@@ -196,7 +198,9 @@ def handle_command(service, calendar_id, command):
 
         if tipo == 'delete':
             if not evento_google_id:
-     
+                logger.warning('Missing eventoGoogleCalendarId for delete of pedido %s', pedido_id)
+                persist_to_raw(command, tipo, 'failure', pedido_id=pedido_id, body_sent=None, google_event=None, error='missing eventoGoogleCalendarId')
+                return {'status': 'skipped', 'reason': 'missing_event_id'}
             try:
                 service.events().delete(calendarId=calendar_id, eventId=evento_google_id).execute()
                 logger.info('Deleted Google Calendar event for pedido %s: %s', pedido_id, evento_google_id)

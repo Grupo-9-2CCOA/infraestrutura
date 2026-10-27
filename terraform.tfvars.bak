@@ -1,0 +1,14 @@
+aws_region   = "us-east-1"
+project_name = "doces-com-amor"
+
+create_ec2_instance_profile = false
+ec2_instance_profile_name   = "LabInstanceProfile"
+
+# backend_image_uri  = "211314438138.dkr.ecr.us-east-1.amazonaws.com/doces-com-amor-backend:b171d1ee171c43b835987e7b93e9b34cbd74d19e"
+# frontend_image_uri = "211314438138.dkr.ecr.us-east-1.amazonaws.com/doces-com-amor-frontend:f13338bb6b46932cd790e004b523ce011feb66fe"
+
+mysql_database = "doces_com_amor"
+mysql_user     = "admin"
+mysql_password = "1234567890qwertyuiop"
+
+google_calendar_secret_arn = "arn:aws:secretsmanager:us-east-1:211314438138:secret:doces-com-amor/google-calendar-yRhYmf"
