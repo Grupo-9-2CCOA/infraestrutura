@@ -87,6 +87,18 @@ variable "backend_port" {
   default     = 8080
 }
 
+variable "raw_bucket_name" {
+  description = "Optional existing S3 bucket name to store raw Google Calendar events."
+  type        = string
+  default     = ""
+}
+
+variable "raw_bucket_arn" {
+  description = "Optional existing S3 bucket ARN to store raw Google Calendar events."
+  type        = string
+  default     = ""
+}
+
 variable "backend_image_uri" {
   description = "Optional complete backend image URI used to pin a version for rollback. By default, the latest ECR image is selected."
   type        = string

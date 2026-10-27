@@ -100,6 +100,10 @@ resource "aws_lambda_function" "consumer" {
       RABBITMQ_QUEUE     = var.rabbitmq_queue
       GOOGLE_SECRET_ARN  = aws_secretsmanager_secret.google_calendar.arn
       GOOGLE_CALENDAR_ID = var.google_calendar_id
+      RAW_BUCKET_NAME    = var.raw_bucket_name
+      RAW_BUCKET_ARN     = var.raw_bucket_arn
+      BACKEND_HOST       = var.backend_host
+      BACKEND_PORT       = tostring(var.backend_port)
     }
   }
 
@@ -132,4 +136,31 @@ resource "aws_lambda_permission" "allow_eventbridge" {
   function_name = aws_lambda_function.consumer.function_name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.schedule.arn
+}
+
+
+resource "aws_iam_policy" "lambda_s3_raw" {
+  count       = var.raw_bucket_arn != "" ? 1 : 0
+  name        = "${var.project_name}-lambda-s3-raw"
+  description = "Allow Lambda to put raw Google Calendar events to S3"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["s3:PutObject"]
+      Resource = "${var.raw_bucket_arn}/raw/google-calendar/*"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_s3_raw_created" {
+  count      = var.raw_bucket_arn != "" && local.create_role ? 1 : 0
+  role       = aws_iam_role.lambda[0].name
+  policy_arn = aws_iam_policy.lambda_s3_raw[0].arn
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_s3_raw_existing" {
+  count      = var.raw_bucket_arn != "" && !local.create_role ? 1 : 0
+  role       = element(split("/", var.existing_lambda_role_arn), length(split("/", var.existing_lambda_role_arn)) - 1)
+  policy_arn = aws_iam_policy.lambda_s3_raw[0].arn
 }

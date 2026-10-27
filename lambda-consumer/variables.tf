@@ -74,6 +74,30 @@ variable "existing_lambda_role_arn" {
   nullable    = true
 }
 
+variable "raw_bucket_name" {
+  description = "Name of the S3 bucket to store raw Google Calendar events."
+  type        = string
+  default     = ""
+}
+
+variable "raw_bucket_arn" {
+  description = "ARN of the S3 bucket to store raw Google Calendar events."
+  type        = string
+  default     = ""
+}
+
+variable "backend_host" {
+  description = "Private IP/host of backend to notify for calendar event linking."
+  type        = string
+  default     = ""
+}
+
+variable "backend_port" {
+  description = "Port of backend API."
+  type        = number
+  default     = 8080
+}
+
 variable "tags" {
   description = "Tags to apply to resources."
   type        = map(string)

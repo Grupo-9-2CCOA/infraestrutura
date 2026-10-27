@@ -98,4 +98,9 @@ module "lambda_consumer" {
   google_calendar_id               = var.google_calendar_id
   google_calendar_credentials_file = var.google_calendar_credentials_file
   existing_lambda_role_arn         = var.lambda_existing_role_arn
+
+  raw_bucket_name = var.raw_bucket_name != "" ? var.raw_bucket_name : try(module.storage[0].bronze_bucket_name, "")
+  raw_bucket_arn  = var.raw_bucket_arn != "" ? var.raw_bucket_arn : try(module.storage[0].bronze_bucket_arn, "")
+  backend_host    = module.compute.backend_a_private_ip
+  backend_port    = var.backend_port
 }
