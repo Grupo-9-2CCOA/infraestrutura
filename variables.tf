@@ -224,3 +224,45 @@ variable "alarm_email" {
   default     = null
   nullable    = true
 }
+
+variable "backup_alert_email" {
+  description = "Optional administrator email subscribed to MySQL backup notifications. Defaults to alarm_email when empty."
+  type        = string
+  default     = null
+  nullable    = true
+}
+
+variable "backup_bucket_name" {
+  description = "Existing S3 bucket used for MySQL backups. When empty, a dedicated bucket is created."
+  type        = string
+  default     = ""
+}
+
+variable "backup_bucket_force_destroy" {
+  description = "Allow Terraform to delete the backup bucket even when it contains objects."
+  type        = bool
+  default     = false
+}
+
+variable "backup_retention_days" {
+  description = "Number of days to keep MySQL backups in S3 before expiring them."
+  type        = number
+  default     = 30
+
+  validation {
+    condition     = var.backup_retention_days > 0
+    error_message = "backup_retention_days must be greater than zero."
+  }
+}
+
+variable "backup_schedule" {
+  description = "Cron expression (UTC, five fields) used to run the daily MySQL backup."
+  type        = string
+  default     = "0 3 * * *"
+}
+
+variable "backup_instance_type" {
+  description = "EC2 instance type used by the MySQL backup host."
+  type        = string
+  default     = "t3.micro"
+}

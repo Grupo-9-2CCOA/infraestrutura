@@ -28,6 +28,16 @@ output "mysql_private_ip" {
   value       = aws_instance.mysql.private_ip
 }
 
+output "backup_instance_id" {
+  description = "ID of the MySQL backup instance."
+  value       = aws_instance.backup.id
+}
+
+output "backup_private_ip" {
+  description = "Private IP of the MySQL backup instance."
+  value       = aws_instance.backup.private_ip
+}
+
 output "backend_a_private_ip" {
   description = "Private IP of backend A instance."
   value       = aws_instance.backend_a.private_ip
@@ -46,6 +56,7 @@ output "instance_ids" {
     backend_a  = aws_instance.backend_a.id
     backend_b  = aws_instance.backend_b.id
     mysql      = aws_instance.mysql.id
+    backup     = aws_instance.backup.id
   }
 }
 

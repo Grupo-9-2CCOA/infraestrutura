@@ -47,6 +47,97 @@ resource "aws_instance" "mysql" {
   }
 }
 
+resource "aws_security_group" "backup" {
+  name_prefix = "${var.project_name}-backup-"
+  description = "MySQL backup host: outbound only to MySQL and AWS APIs"
+  vpc_id      = var.vpc_id
+
+  egress {
+    description     = "MySQL connections to the database instance"
+    from_port       = 3306
+    to_port         = 3306
+    protocol        = "tcp"
+    security_groups = [var.mysql_sg_id]
+  }
+
+  egress {
+    description = "HTTPS for package installation, S3 and SNS"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "HTTP for Ubuntu package repositories"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "DNS resolution through the VPC resolver"
+    from_port   = 53
+    to_port     = 53
+    protocol    = "udp"
+    cidr_blocks = [var.vpc_cidr]
+  }
+
+  tags = {
+    Name = "${var.project_name}-backup-sg"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group_rule" "mysql_from_backup" {
+  type                     = "ingress"
+  description              = "MySQL connections from the backup instance"
+  from_port                = 3306
+  to_port                  = 3306
+  protocol                 = "tcp"
+  security_group_id        = var.mysql_sg_id
+  source_security_group_id = aws_security_group.backup.id
+}
+
+resource "aws_instance" "backup" {
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = var.backup_instance_type
+  subnet_id              = var.database_subnet_id
+  vpc_security_group_ids = [aws_security_group.backup.id]
+  iam_instance_profile   = var.instance_profile_name
+
+  user_data = templatefile("${path.module}/user-data/backup.sh", {
+    aws_region           = var.aws_region
+    backup_bucket_name   = var.backup_bucket_name
+    backup_sns_topic_arn = var.backup_sns_topic_arn
+    backup_schedule      = var.backup_schedule
+    backup_script_b64    = filebase64("${path.module}/scripts/backup_mysql.sh")
+    mysql_private_ip     = aws_instance.mysql.private_ip
+    mysql_database       = var.mysql_database
+    mysql_user           = var.mysql_user
+    mysql_password_b64   = base64encode(var.mysql_password)
+  })
+  user_data_replace_on_change = true
+
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+
+  root_block_device {
+    encrypted = true
+  }
+
+  tags = {
+    Name = "${var.project_name}-mysql-backup"
+    Role = "Backup"
+  }
+}
+
 resource "aws_instance" "backend_a" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = var.backend_instance_type
