@@ -3,6 +3,16 @@ variable "project_name" {
   type        = string
 }
 
+variable "vpc_id" {
+  description = "ID of the VPC containing the instances."
+  type        = string
+}
+
+variable "vpc_cidr" {
+  description = "CIDR block of the VPC."
+  type        = string
+}
+
 variable "public_subnet_a_id" {
   description = "ID of public subnet A."
   type        = string
@@ -118,4 +128,24 @@ variable "mysql_password" {
   description = "MySQL application password."
   type        = string
   sensitive   = true
+}
+
+variable "backup_instance_type" {
+  description = "EC2 instance type for the MySQL backup host."
+  type        = string
+}
+
+variable "backup_bucket_name" {
+  description = "S3 bucket that stores the MySQL backups."
+  type        = string
+}
+
+variable "backup_sns_topic_arn" {
+  description = "SNS topic ARN used for MySQL backup notifications."
+  type        = string
+}
+
+variable "backup_schedule" {
+  description = "Cron expression used to run the daily MySQL backup."
+  type        = string
 }

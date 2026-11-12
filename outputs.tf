@@ -28,3 +28,18 @@ output "google_calendar_secret_arn" {
   description = "ARN of Secrets Manager secret for Google Calendar service account."
   value       = module.lambda_consumer.google_calendar_secret_arn
 }
+
+output "mysql_backup_bucket_name" {
+  description = "S3 bucket that stores the daily MySQL backups."
+  value       = module.backup.bucket_name
+}
+
+output "mysql_backup_sns_topic_arn" {
+  description = "SNS topic used for MySQL backup success and failure emails."
+  value       = module.backup.sns_topic_arn
+}
+
+output "mysql_backup_instance_id" {
+  description = "ID of the EC2 instance that runs the daily MySQL backup."
+  value       = module.compute.backup_instance_id
+}

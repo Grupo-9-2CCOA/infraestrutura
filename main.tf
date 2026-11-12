@@ -20,12 +20,25 @@ module "security" {
   backend_port  = var.backend_port
 }
 
+module "backup" {
+  source = "./backup"
+
+  project_name                = var.project_name
+  backup_bucket_name          = var.backup_bucket_name
+  backup_bucket_force_destroy = var.backup_bucket_force_destroy
+  backup_retention_days       = var.backup_retention_days
+  backup_alert_email          = var.backup_alert_email != null && var.backup_alert_email != "" ? var.backup_alert_email : var.alarm_email
+  create_iam_policy           = var.create_ec2_instance_profile
+}
+
 module "compute" {
   source = "./compute"
 
   depends_on = [module.network]
 
   project_name           = var.project_name
+  vpc_id                 = module.network.vpc_id
+  vpc_cidr               = var.vpc_cidr
   public_subnet_a_id     = module.network.public_subnet_a_id
   public_subnet_b_id     = module.network.public_subnet_b_id
   backend_subnet_a_id    = module.network.backend_subnet_a_id
@@ -49,6 +62,10 @@ module "compute" {
   mysql_database         = var.mysql_database
   mysql_user             = var.mysql_user
   mysql_password         = var.mysql_password
+  backup_instance_type   = var.backup_instance_type
+  backup_bucket_name     = module.backup.bucket_name
+  backup_sns_topic_arn   = module.backup.sns_topic_arn
+  backup_schedule        = var.backup_schedule
 }
 
 module "load_balancer" {

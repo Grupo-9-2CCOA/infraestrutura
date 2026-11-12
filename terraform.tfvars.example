@@ -42,3 +42,16 @@ mysql_password = "ALTERAR_LOCALMENTE"
 
 # Optional: creates an email subscription that must be confirmed by the recipient.
 # alarm_email = "alerts@example.com"
+
+# Optional: email that receives the daily MySQL backup success/failure report.
+# When omitted, alarm_email is used.
+# backup_alert_email = "admin@example.com"
+
+# Optional: reuse an existing bucket instead of creating a dedicated backup bucket.
+# Useful when the AWS account denies the S3 calls used by the Terraform provider.
+# backup_bucket_name = "my-existing-backup-bucket"
+
+# Daily backup schedule. The instance uses UTC.
+# backup_schedule    = "0 3 * * *"
+# backup_retention_days = 30
+# backup_instance_type  = "t3.micro"

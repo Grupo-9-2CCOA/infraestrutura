@@ -66,6 +66,7 @@ A infraestrutura é composta por:
 - 2 instâncias EC2 para Frontend;
 - 2 instâncias EC2 para Backend;
 - 1 instância EC2 para MySQL;
+- 1 instância EC2 dedicada ao backup diário do MySQL;
 - 1 Application Load Balancer;
 - Internet Gateway;
 - NAT Gateway;
@@ -73,6 +74,7 @@ A infraestrutura é composta por:
 - Security Groups;
 - VPC Endpoint para Amazon S3;
 - Data Lake opcional com 3 buckets Amazon S3;
+- Bucket Amazon S3 para backups do MySQL;
 - Amazon CloudWatch;
 - Amazon SNS.
 - 2 repositórios Amazon ECR persistentes, gerenciados separadamente em `bootstrap/`.
@@ -144,6 +146,54 @@ A infraestrutura utiliza **Amazon CloudWatch** para monitoramento dos recursos p
 O CloudWatch é responsável pela coleta e visualização de métricas da infraestrutura, além da criação de alarmes.
 
 O **Amazon SNS** é utilizado para envio de notificações quando os alarmes configurados são acionados.
+
+## Backup do banco de dados
+
+O módulo `backup/` cria um bucket S3 versionado e um tópico SNS. O módulo
+`compute/` provisiona uma instância EC2 dedicada em `compute/user-data/backup.sh`,
+que instala o MySQL client e a AWS CLI, grava o script
+`compute/scripts/backup_mysql.sh` e registra um Cron Job diário em
+`/etc/cron.d/mysql-backup`.
+
+O fluxo executado diariamente é:
+
+```text
+mysqldump completo -> arquivo mysql-backup-AAAA-MM-DD.sql -> upload S3
+                                                          -> e-mail SNS (sucesso/erro)
+```
+
+O backup roda em uma instância dedicada, sem alterar o `user_data` da instância
+MySQL. Assim, aplicar esta configuração não recria o banco de dados existente.
+
+Detalhes:
+
+- O nome do arquivo contém a data ISO (`mysql-backup-2026-11-12.sql`).
+- O objeto é gravado em `s3://<bucket>/mysql-backups/AAAA-MM-DD/`.
+- O dump usa `--single-transaction` e `--no-tablespaces` para não bloquear as
+  tabelas InnoDB nem exigir o privilégio global `PROCESS`.
+- O log da execução fica em `/var/log/mysql-backup.log` na instância de backup.
+- O agendamento padrão é `0 3 * * *`, em **UTC** (meia-noite em Brasília).
+  Ajuste com `backup_schedule` se necessário.
+- A retenção padrão é de 30 dias (`backup_retention_days`).
+- O e-mail do administrador é configurado em `backup_alert_email` e, quando
+  omitido, usa `alarm_email`. A assinatura SNS precisa ser confirmada por e-mail.
+
+O e-mail depende de permissões `s3:PutObject` e `sns:Publish` no Instance Profile
+das instâncias. Quando `create_ec2_instance_profile = true` (padrão), o Terraform
+cria e anexa essa política automaticamente. Quando um perfil existente é usado
+(`create_ec2_instance_profile = false`, comum na AWS Academy), o perfil precisa
+já possuir essas permissões.
+
+Se a conta negar a criação do bucket S3 (mesma limitação de Object Lock descrita
+acima), informe um bucket existente em `backup_bucket_name`; o Terraform passa a
+apenas gravar os objetos nele.
+
+Para restaurar um backup:
+
+```bash
+aws s3 cp s3://<bucket>/mysql-backups/AAAA-MM-DD/mysql-backup-AAAA-MM-DD.sql .
+mysql -h <host> -u <usuario> -p < mysql-backup-AAAA-MM-DD.sql
+```
 
 ## Pré-requisitos
 
