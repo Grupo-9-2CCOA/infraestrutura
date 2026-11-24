@@ -123,6 +123,9 @@ resource "aws_security_group" "backend_a" {
 
   lifecycle {
     create_before_destroy = true
+    # As regras vindas da Lambda e do backend B ficam em aws_security_group_rule;
+    # sem isto o Terraform as remove ao atualizar as regras inline.
+    ignore_changes = [ingress]
   }
 }
 
@@ -153,6 +156,9 @@ resource "aws_security_group" "backend_b" {
 
   lifecycle {
     create_before_destroy = true
+    # As regras vindas da Lambda e do backend B ficam em aws_security_group_rule;
+    # sem isto o Terraform as remove ao atualizar as regras inline.
+    ignore_changes = [ingress]
   }
 }
 
